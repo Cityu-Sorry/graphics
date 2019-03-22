@@ -14,6 +14,7 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
+#include <GL/glut.h>
 
 #define PI 3.141592653589793
 
@@ -124,6 +125,47 @@ void CompileLists()
 	glTexCoord2d(0, 1); glVertex3d(400, 475, 0.4);
 	glEnd();
 	glEndList();
+}
+
+void Table() {
+	//material property
+	GLfloat tb_ambient[] = { 0.05,0.05,0.05,1 };
+	GLfloat tb_diffuse[] = { 0.8,0.8,0.8,1 };
+	GLfloat tb_specular[] = { 0.6,0.6,0.6,1 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tb_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tb_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tb_specular);
+	/******** 4 legs of the table *********/
+	GLUquadricObj*ob = gluNewQuadric();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+	glTranslatef(0, -20, -45);
+	glRotatef(-90, 1, 0, 0);
+	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(1, -20, -53);
+	glRotatef(-90, 1, 0, 0);
+	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(8, -20, -53);
+	glRotatef(-90, 1, 0, 0);
+	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(8, -20, -45);
+	glRotatef(-90, 1, 0, 0);
+	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
+	glPopMatrix();
+	/********** surface of the table *******/
+	glPushMatrix();
+	glTranslatef(4, -9.5, -49);
+	glScalef(1, 0.1, 1);
+	glutSolidCube(10);
+	glPopMatrix();
+	glFlush();
 }
 
 /*
@@ -295,6 +337,16 @@ void DrawRoom()
 	glPopMatrix();
 
 	glPopMatrix();
+	Table();
+
+}
+
+void maximizeObj() {
+
+}
+
+void minimizeObj() {
+
 }
 
 int main(int argc, char **argv)
@@ -375,6 +427,7 @@ int main(int argc, char **argv)
 	int RelX(0), RelY(0);
 	int MovementDelay(SDL_GetTicks());
 
+
 	bool Wireframe(false);
 	bool Keys[4] =
 	{
@@ -390,6 +443,7 @@ int main(int argc, char **argv)
 		/* Handle events with SDL. */
 		if (SDL_PollEvent(&event))
 		{
+
 			if (event.type == SDL_QUIT)
 				break;
 
@@ -422,6 +476,12 @@ int main(int argc, char **argv)
 				if (event.key.keysym.sym == SDLK_k)
 					glPolygonMode(GL_FRONT_AND_BACK, ((Wireframe = !Wireframe) ? GL_LINE : GL_FILL));
 
+				if (event.key.keysym.sym == SDLK_m) {
+					maximizeObj();
+				}
+				if (event.key.keysym.sym == SDLK_n) {
+					minimizeObj();
+				}
 				if (event.key.keysym.sym == SDLK_UP)			Keys[0] = true;
 				if (event.key.keysym.sym == SDLK_DOWN)		Keys[1] = true;
 				if (event.key.keysym.sym == SDLK_LEFT)		Keys[2] = true;
@@ -435,6 +495,7 @@ int main(int argc, char **argv)
 				if (event.key.keysym.sym == SDLK_LEFT)		Keys[2] = false;
 				if (event.key.keysym.sym == SDLK_RIGHT)		Keys[3] = false;
 			}
+			
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
