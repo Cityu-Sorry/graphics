@@ -1,6 +1,3 @@
 ﻿  Source.cpp
-d:\g\graphics_project\source.cpp(132): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-d:\g\graphics_project\source.cpp(133): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-d:\g\graphics_project\source.cpp(134): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-  graphics_project.vcxproj -> D:\g\Debug\graphics_project.exe
-  graphics_project.vcxproj -> D:\g\Debug\graphics_project.pdb (Full PDB)
+  graphics_project.vcxproj -> D:\g\g\Debug\graphics_project.exe
+  graphics_project.vcxproj -> D:\g\g\Debug\graphics_project.pdb (Full PDB)

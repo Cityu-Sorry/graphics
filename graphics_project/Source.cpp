@@ -24,6 +24,7 @@ unsigned BoxList(0);					//Added!
 										/* These will define the player's position and view angle. */
 double X(0.0), Y(0.0), Z(0.0);
 double ViewAngleHor(0.0), ViewAngleVer(0.0);
+double rectRatio = 1.0f;
 
 /*
 * DegreeToRadian
@@ -127,46 +128,67 @@ void CompileLists()
 	glEndList();
 }
 
-void Table() {
-	//material property
-	GLfloat tb_ambient[] = { 0.05,0.05,0.05,1 };
-	GLfloat tb_diffuse[] = { 0.8,0.8,0.8,1 };
-	GLfloat tb_specular[] = { 0.6,0.6,0.6,1 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, tb_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, tb_diffuse);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tb_specular);
-	/******** 4 legs of the table *********/
-	GLUquadricObj*ob = gluNewQuadric();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslatef(0, -20, -45);
-	glRotatef(-90, 1, 0, 0);
-	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(1, -20, -53);
-	glRotatef(-90, 1, 0, 0);
-	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(8, -20, -53);
-	glRotatef(-90, 1, 0, 0);
-	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
-	glPopMatrix();
-	glPushMatrix();
-	glTranslatef(8, -20, -45);
-	glRotatef(-90, 1, 0, 0);
-	gluCylinder(ob, 0.5, 0.5, 10, 20, 20);
-	glPopMatrix();
-	/********** surface of the table *******/
-	glPushMatrix();
-	glTranslatef(4, -9.5, -49);
-	glScalef(1, 0.1, 1);
-	glutSolidCube(10);
-	glPopMatrix();
-	glFlush();
+
+
+void drawTable() {
+	glBegin(GL_QUADS);
+
+	// bottom
+	glColor3f(0.0f, 1.0f, 0.0f);
+	int left = -20;
+	int width = 70 * rectRatio;
+	int bottom = 490;
+	int height = 40 * rectRatio;
+	float start = -0.5f;
+	int depth = 1;
+
+	glVertex3d(left, bottom, start+ depth);
+	glVertex3d(left+ width, bottom, start+ depth);
+	glVertex3d(left + width, bottom, start);
+	glVertex3d(left, bottom, start);
+
+	/* top. */
+	glColor3f(0.0f, 1.0f, 0.0f);
+
+	glVertex3d(left, bottom - height, start+ depth);
+	glVertex3d(left + width, bottom - height, start+ depth);
+	glVertex3d(left + width, bottom - height, start);
+	glVertex3d(left, bottom - height, start);
+	// left
+	glColor3f(0.0f, 0.0f, 1.0f);
+
+	glVertex3d(left, bottom, start+ depth);
+	glVertex3d(left + width, bottom, start+ depth);
+	glVertex3d(left + width, bottom - height, start+ depth);
+	glVertex3d(left, bottom - height, start+ depth);
+
+	// right
+	glColor3f(0.0f, 0.0f, 1.0f);
+
+	glVertex3d(left, bottom, start);
+	glVertex3d(left + width, bottom, start);
+	glVertex3d(left + width, bottom - height, start);
+	glVertex3d(left, bottom - height, start);
+	/* front. */
+	glColor3f(0.0f, 1.0f, 1.0f);
+
+	glVertex3d(left + width, bottom, start);
+	glVertex3d(left + width, bottom, start+ depth);
+	glVertex3d(left + width, bottom - height, start+ depth);
+	glVertex3d(left + width, bottom - height, start);
+	/* behind. */
+	glColor3f(0.0f, 1.0f, 1.0f);
+
+	glVertex3d(left, bottom, start);
+	glVertex3d(left, bottom, start+ depth);
+	glVertex3d(left, bottom - height, start+ depth);
+	glVertex3d(left, bottom - height, start);
+
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glEnd();
 }
+
+
 
 /*
 * DrawRoom
@@ -213,6 +235,7 @@ void DrawRoom()
 
 	/* Set the coordinate system. */
 	glOrtho(0, 800, 600, 0, -1, 1);
+
 
 	/* Draw walls. */
 	glBindTexture(GL_TEXTURE_2D, Textures[0]);
@@ -274,6 +297,7 @@ void DrawRoom()
 	/* Draw the floor and the ceiling, this is done separatly because glBindTexture isn't allowed inside glBegin. */
 	glBindTexture(GL_TEXTURE_2D, Textures[1]);
 
+	/* floor. */
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
 	glVertex3d(-200, 500, 4.0);
@@ -301,6 +325,9 @@ void DrawRoom()
 	glVertex3d(-200, 0, -4.0);
 	glEnd();
 
+	drawTable();
+
+
 	/* Now we're going to render some boxes using display lists. */
 	glPushMatrix();
 	/* Let's make it a bit smaller... */
@@ -327,25 +354,28 @@ void DrawRoom()
 		if (i == 5)		glTranslated(-1575, -350, 0);
 		if (i == 9)		glTranslated(-1225, -350, 0);
 
-		/*
+		/*w
 		* glCallList is all that is really needed to execute the display list. Remember to try the 'K' button
 		* to turn on wireframe mode, with these extra polygons, it looks pretty neat!
 		*/
 		glCallList(BoxList);
 	}
-
 	glPopMatrix();
 
 	glPopMatrix();
-	Table();
 
 }
 
 void maximizeObj() {
-
+	rectRatio = rectRatio + 0.5f;
+	printf("ratio: %f", rectRatio);
 }
 
 void minimizeObj() {
+	if (rectRatio > 0.5) {
+		rectRatio = rectRatio - 0.5f;
+	}
+	printf("ratio: %f", rectRatio);
 
 }
 
@@ -436,6 +466,7 @@ int main(int argc, char **argv)
 		false, /* Left arrow down? */
 		false  /* Right arrow down? */
 	};
+
 
 	/* Application loop. */
 	for (;;)
