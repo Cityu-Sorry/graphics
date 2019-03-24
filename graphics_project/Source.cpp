@@ -379,6 +379,12 @@ void minimizeObj() {
 
 }
 
+void lookAtPos() {
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(1, 0.0, 0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+}
+
 int main(int argc, char **argv)
 {
 	/* Initialize SDL and set up a window. */
@@ -512,6 +518,9 @@ int main(int argc, char **argv)
 				}
 				if (event.key.keysym.sym == SDLK_n) {
 					minimizeObj();
+				}
+				if (event.key.keysym.sym == SDLK_q) {
+					lookAtPos();
 				}
 				if (event.key.keysym.sym == SDLK_UP)			Keys[0] = true;
 				if (event.key.keysym.sym == SDLK_DOWN)		Keys[1] = true;
