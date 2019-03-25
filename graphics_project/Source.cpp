@@ -18,13 +18,15 @@
 
 #define PI 3.141592653589793
 
-unsigned Textures[3];
+unsigned Textures[4];
 unsigned BoxList(0);					//Added!
 
 										/* These will define the player's position and view angle. */
 double X(0.0), Y(0.0), Z(0.0);
 double ViewAngleHor(0.0), ViewAngleVer(0.0);
 double rectRatio = 1.0f;
+int leftMovingPos = 0;
+float heightMovingPos = 0;
 
 /*
 * DegreeToRadian
@@ -131,15 +133,33 @@ void CompileLists()
 
 
 void drawTable() {
+	static float brickTexWidth(0.f);
+	static float brickTexHeight(0.f);
+	static bool Once(false);
+
+	/* Perform this check only once. */
+	if (!Once)
+	{
+		/* Bind the wall texture. */
+		glBindTexture(GL_TEXTURE_2D, Textures[3]);
+
+		/* Retrieve the width and height of the current texture (can also be done up front with SDL and saved somewhere). */
+		glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &brickTexWidth);
+		glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &brickTexHeight);
+
+		Once = true;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, Textures[3]);
 	glBegin(GL_QUADS);
 
 	// bottom
 	glColor3f(0.0f, 1.0f, 0.0f);
-	int left = -20;
+	int left = -20 + leftMovingPos;
 	int width = 70 * rectRatio;
 	int bottom = 490;
 	int height = 40 * rectRatio;
-	float start = -0.5f;
+	float start = -0.5f + heightMovingPos;
 	int depth = 1;
 
 	glVertex3d(left, bottom, start+ depth);
@@ -148,11 +168,18 @@ void drawTable() {
 	glVertex3d(left, bottom, start);
 
 	/* top. */
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3f(1.0f, 1.0f, 1.0f);
 
-	glVertex3d(left, bottom - height, start+ depth);
-	glVertex3d(left + width, bottom - height, start+ depth);
+	glTexCoord2f(0, 0);
+	glVertex3d(left, bottom - height, start + depth);
+
+	glTexCoord2f(width / brickTexWidth, 0);
+	glVertex3d(left + width, bottom - height, start + depth);
+
+	glTexCoord2f(width / brickTexWidth, height / brickTexHeight);
 	glVertex3d(left + width, bottom - height, start);
+
+	glTexCoord2f(0, height / brickTexHeight);
 	glVertex3d(left, bottom - height, start);
 	// left
 	glColor3f(0.0f, 0.0f, 1.0f);
@@ -382,7 +409,7 @@ void minimizeObj() {
 void lookAtPos() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(1, 0.0, 0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+	gluLookAt(0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 }
 
 int main(int argc, char **argv)
@@ -438,6 +465,7 @@ int main(int argc, char **argv)
 	Textures[0] = GrabTexObjFromFile("Data/Wall.png");
 	Textures[1] = GrabTexObjFromFile("Data/Floor.png");
 	Textures[2] = GrabTexObjFromFile("Data/Box.png");			//Added!
+	Textures[3] = GrabTexObjFromFile("Data/brick.png");
 
 																//Replaced this with a loop that immediately checks the entire array.
 																//sizeof(Textures) is the size of the entire array in bytes (unsigned int = 4 bytes)
@@ -522,6 +550,22 @@ int main(int argc, char **argv)
 				if (event.key.keysym.sym == SDLK_q) {
 					lookAtPos();
 				}
+				if (event.key.keysym.sym == SDLK_e) {
+					glMatrixMode(GL_MODELVIEW);
+					glLoadIdentity();
+				}
+				if (event.key.keysym.sym == SDLK_a) {
+					leftMovingPos = leftMovingPos + 10;
+				}
+				if (event.key.keysym.sym == SDLK_d) {
+					leftMovingPos = leftMovingPos - 10;
+				}
+				if (event.key.keysym.sym == SDLK_w) {
+					heightMovingPos = heightMovingPos + 0.2;
+				}
+				if (event.key.keysym.sym == SDLK_s) {
+					heightMovingPos = heightMovingPos - 0.2;
+				}
 				if (event.key.keysym.sym == SDLK_UP)			Keys[0] = true;
 				if (event.key.keysym.sym == SDLK_DOWN)		Keys[1] = true;
 				if (event.key.keysym.sym == SDLK_LEFT)		Keys[2] = true;
@@ -574,7 +618,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Delete the created textures. */
-	glDeleteTextures(3, Textures);		//Changed to 3.
+	glDeleteTextures(4, Textures);		//Changed to 3.
 	glDeleteLists(BoxList, 1);
 
 	/* Clean up. */
