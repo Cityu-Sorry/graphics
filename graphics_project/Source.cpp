@@ -7,6 +7,7 @@
 #	pragma comment(lib, "SDLmain.lib")
 #	pragma comment(lib, "SDL_image.lib")
 #endif //_MSC_VER
+#pragma warning(disable:4996)
 
 #include <string>
 #include <cmath>
@@ -15,6 +16,12 @@
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
 #include <GL/glut.h>
+#include <stdlib.h>
+#include <list>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #define PI 3.141592653589793
 
@@ -27,7 +34,113 @@ double ViewAngleHor(0.0), ViewAngleVer(0.0);
 double rectRatio = 1.0f;
 int leftMovingPos = 0;
 float heightMovingPos = 0;
+float elephantrot;
 
+class MyPoint {
+public :
+	int width = 100; //10
+	int height = 100; // 10
+	float start = 2.5f;// 2.5~-3.5
+	int left;
+	int bottomRandom;
+	float heightMovingPosRandom;
+	float elephantrotRandom;
+	int isRight = true;
+
+	int myrandom(int a, int b) {
+		return rand() % (b - a + 1) + a;
+	}
+
+	MyPoint() {
+		//leftMovingPosRandom = myrandom(-200, 1000); // -200~1000
+		//bottomRandom = myrandom(200, 490); // 490 ~ 200; 
+		left = -200;
+		bottomRandom = 300;
+	}
+
+	void draw() {
+		glBegin(GL_QUADS);
+
+		glColor3f(0.8f, 0.8f, 0.8f);
+		start = start - 0.01f;
+		int leftOffset;
+		if (isRight) {
+			leftOffset = 10;
+			if (left >= 980) {
+				leftOffset = -10;
+				isRight = false;
+			}else if(left <= -150) {
+				leftOffset = 10;
+				isRight = true;
+			}
+		} else {
+			leftOffset = -10;
+			if (left >= 980) {
+				leftOffset = -10;
+				isRight = false;
+
+			}
+			else if(left <= -150) {
+				leftOffset = 10;
+				isRight = true;
+
+			}
+		}
+		left = left + leftOffset;
+
+		float depth = 0.05f;
+
+		// bottom
+		glVertex3d(left, bottomRandom, start + depth);
+		glVertex3d(left + width, bottomRandom, start + depth);
+		glVertex3d(left + width, bottomRandom, start);
+		glVertex3d(left, bottomRandom, start);
+
+		/* top. */
+
+		glTexCoord2f(0, 0);
+		glVertex3d(left, bottomRandom - height, start + depth);
+
+		glTexCoord2f(width, 0);
+		glVertex3d(left + width, bottomRandom - height, start + depth);
+
+		glTexCoord2f(width, height);
+		glVertex3d(left + width, bottomRandom - height, start);
+
+		glTexCoord2f(0, height);
+		glVertex3d(left, bottomRandom - height, start);
+		// left
+
+		glVertex3d(left, bottomRandom, start + depth);
+		glVertex3d(left + width, bottomRandom, start + depth);
+		glVertex3d(left + width, bottomRandom - height, start + depth);
+		glVertex3d(left, bottomRandom - height, start + depth);
+
+		// right
+
+		glVertex3d(left, bottomRandom, start);
+		glVertex3d(left + width, bottomRandom, start);
+		glVertex3d(left + width, bottomRandom - height, start);
+		glVertex3d(left, bottomRandom - height, start);
+		/* front. */
+
+		glVertex3d(left + width, bottomRandom, start);
+		glVertex3d(left + width, bottomRandom, start + depth);
+		glVertex3d(left + width, bottomRandom - height, start + depth);
+		glVertex3d(left + width, bottomRandom - height, start);
+		/* behind. */
+
+		glVertex3d(left, bottomRandom, start);
+		glVertex3d(left, bottomRandom, start + depth);
+		glVertex3d(left, bottomRandom - height, start + depth);
+		glVertex3d(left, bottomRandom - height, start);
+
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glEnd();
+	}
+};
+
+MyPoint mtPoint;
 /*
 * DegreeToRadian
 *	Converts a specified amount of degrees to radians.
@@ -215,7 +328,9 @@ void drawTable() {
 	glEnd();
 }
 
-
+void drawCircle() {
+	mtPoint.draw();
+}
 
 /*
 * DrawRoom
@@ -353,6 +468,7 @@ void DrawRoom()
 	glEnd();
 
 	drawTable();
+	drawCircle();
 
 
 	/* Now we're going to render some boxes using display lists. */
@@ -387,6 +503,7 @@ void DrawRoom()
 		*/
 		glCallList(BoxList);
 	}
+
 	glPopMatrix();
 
 	glPopMatrix();
@@ -411,6 +528,7 @@ void lookAtPos() {
 	glLoadIdentity();
 	gluLookAt(0, 0.5, 0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 }
+
 
 int main(int argc, char **argv)
 {
@@ -471,6 +589,7 @@ int main(int argc, char **argv)
 																//sizeof(Textures) is the size of the entire array in bytes (unsigned int = 4 bytes)
 																//so sizeof(Textures) would give 3 * 4 = 12 bytes, divide this by 4 bytes and you
 																//have 3.
+	mtPoint = MyPoint();
 	for (unsigned i(0); i < sizeof(Textures) / sizeof(unsigned); ++i)
 	{
 		if (Textures[i] == 0)
@@ -587,7 +706,6 @@ int main(int argc, char **argv)
 		glPushMatrix();
 		DrawRoom();
 		glPopMatrix();
-
 		/* Move if the keys are pressed, this is explained in the tutorial. */
 		if (Keys[0])
 		{
