@@ -37,41 +37,45 @@ int leftMovingPos = 0;
 float heightMovingPos = 0;
 float elephantrot;
 
+int random(int min, int max) //range : [min, max)
+{
+	static bool first = true;
+	if (first)
+	{
+		srand(time(NULL)); //seeding for the first time only!
+		first = false;
+	}
+	return min + rand() % ((max + 1) - min);
+}
 
 class MyPoint {
 public :
-	int width = 100; //10
-	int height = 100; // 10
-	volatile float start = 2.5f;// 2.5~-3.5
+	int width = 35; 
+	int height = 35; 
+	float depth = 0.05f;
+	
 	int left;
-	int bottomRandom;
-	float heightMovingPosRandom;
-	float elephantrotRandom;
+	int bottom;
+	
+	bool active = true;
+private: 
+	volatile float start = 2.5f;// 2.5~-3.5
 	int isRight = true;
 
-	int random(int min, int max) //range : [min, max)
-	{
-		static bool first = true;
-		if (first)
-		{
-			srand(time(NULL)); //seeding for the first time only!
-			first = false;
-		}
-		return min + rand() % ((max + 1) - min);
-	}
-
-	MyPoint(int left1, int bottom) {
+public:
+	MyPoint() {
 		left = random(-200, 1000); // -200~1000
-		bottomRandom = random(200, 490); // 490 ~ 200; 
-		//left = left1;
-		//bottomRandom = bottom;
+		isRight = left <= 450;
+
+		bottom = random(200, 490); // 490 ~ 200; 
 	}
-
-
 
 	void calculate() {
-		while(start > -3.5) {
-		start = start - 0.01f;
+		if (start < -3.8) {
+			active = false;
+			return;
+		}
+		start = start - 0.008f;
 		int leftOffset;
 		if (isRight) {
 			leftOffset = 10;
@@ -98,8 +102,8 @@ public :
 			}
 		}
 		left = left + leftOffset;
+
 		Sleep(20);
-		}
 	}
 
 	void calculateInThread() {
@@ -109,60 +113,61 @@ public :
 
 	void reset() {
 		left = random(-200, 1000); // -200~1000
-		bottomRandom = random(200, 490); // 490 ~ 200; 
+		bottom = random(200, 490); // 490 ~ 200; 
 	}
 
 	void draw() {
+		if (!active) {
+			return;
+		}
 		glBegin(GL_QUADS);
 
 		glColor3f(0.8f, 0.8f, 0.8f);
 
-		float depth = 0.05f;
-
 		// bottom
-		glVertex3d(left, bottomRandom, start + depth);
-		glVertex3d(left + width, bottomRandom, start + depth);
-		glVertex3d(left + width, bottomRandom, start);
-		glVertex3d(left, bottomRandom, start);
+		glVertex3d(left, bottom, start + depth);
+		glVertex3d(left + width, bottom, start + depth);
+		glVertex3d(left + width, bottom, start);
+		glVertex3d(left, bottom, start);
 
 		/* top. */
 
 		glTexCoord2f(0, 0);
-		glVertex3d(left, bottomRandom - height, start + depth);
+		glVertex3d(left, bottom - height, start + depth);
 
 		glTexCoord2f(width, 0);
-		glVertex3d(left + width, bottomRandom - height, start + depth);
+		glVertex3d(left + width, bottom - height, start + depth);
 
 		glTexCoord2f(width, height);
-		glVertex3d(left + width, bottomRandom - height, start);
+		glVertex3d(left + width, bottom - height, start);
 
 		glTexCoord2f(0, height);
-		glVertex3d(left, bottomRandom - height, start);
+		glVertex3d(left, bottom - height, start);
 		// left
 
-		glVertex3d(left, bottomRandom, start + depth);
-		glVertex3d(left + width, bottomRandom, start + depth);
-		glVertex3d(left + width, bottomRandom - height, start + depth);
-		glVertex3d(left, bottomRandom - height, start + depth);
+		glVertex3d(left, bottom, start + depth);
+		glVertex3d(left + width, bottom, start + depth);
+		glVertex3d(left + width, bottom - height, start + depth);
+		glVertex3d(left, bottom - height, start + depth);
 
 		// right
 
-		glVertex3d(left, bottomRandom, start);
-		glVertex3d(left + width, bottomRandom, start);
-		glVertex3d(left + width, bottomRandom - height, start);
-		glVertex3d(left, bottomRandom - height, start);
+		glVertex3d(left, bottom, start);
+		glVertex3d(left + width, bottom, start);
+		glVertex3d(left + width, bottom - height, start);
+		glVertex3d(left, bottom - height, start);
 		/* front. */
 
-		glVertex3d(left + width, bottomRandom, start);
-		glVertex3d(left + width, bottomRandom, start + depth);
-		glVertex3d(left + width, bottomRandom - height, start + depth);
-		glVertex3d(left + width, bottomRandom - height, start);
+		glVertex3d(left + width, bottom, start);
+		glVertex3d(left + width, bottom, start + depth);
+		glVertex3d(left + width, bottom - height, start + depth);
+		glVertex3d(left + width, bottom - height, start);
 		/* behind. */
 
-		glVertex3d(left, bottomRandom, start);
-		glVertex3d(left, bottomRandom, start + depth);
-		glVertex3d(left, bottomRandom - height, start + depth);
-		glVertex3d(left, bottomRandom - height, start);
+		glVertex3d(left, bottom, start);
+		glVertex3d(left, bottom, start + depth);
+		glVertex3d(left, bottom - height, start + depth);
+		glVertex3d(left, bottom - height, start);
 
 		glColor3f(1.0f, 1.0f, 1.0f);
 		glEnd();
@@ -357,11 +362,6 @@ void drawTable() {
 	glEnd();
 }
 
-void s(MyPoint mtPoint) {
-	mtPoint.calculate();
-
-}
-
 
 void calculate1() {
 	for (auto& point : points) {
@@ -371,6 +371,7 @@ void calculate1() {
 
 
 void drawCircle() {
+	calculate1();
 	for (auto& point : points) {
 		point.draw();
 	}
@@ -378,14 +379,21 @@ void drawCircle() {
 
 
 void createCircle() {
-	MyPoint mtPoint(-200, 300);
-	MyPoint mtPoint1(-200, 450);
-	MyPoint mtPoint2(-200, 450);
+	MyPoint mtPoint;
+	MyPoint mtPoint1;
+	MyPoint mtPoint2;
 
 	points.push_back(mtPoint);
+	Sleep(random(800, 1500));
+
+	points.push_back(mtPoint2);
+	Sleep(random(600, 3000));
 
 	points.push_back(mtPoint1);
-	points.push_back(mtPoint2);
+
+	Sleep(random(1600, 5000));
+
+	createCircle();
 
 }
 /*
@@ -616,7 +624,7 @@ int main(int argc, char **argv)
 	glLoadIdentity();
 
 	gluPerspective(80.0, 800.0 / 600.0, 0.1, 100.0);
-	createCircle();
+	std::thread c(createCircle);
 	/* We now switch to the modelview matrix. */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -661,7 +669,6 @@ int main(int argc, char **argv)
 
 	/* Compile the display lists. */
 	CompileLists();
-	calculate1();
 	SDL_Event event;
 
 	int RelX(0), RelY(0);
