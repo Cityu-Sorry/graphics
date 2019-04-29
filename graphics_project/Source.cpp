@@ -18,6 +18,7 @@
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <list>
+#include <thread>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -36,33 +37,40 @@ int leftMovingPos = 0;
 float heightMovingPos = 0;
 float elephantrot;
 
+
 class MyPoint {
 public :
 	int width = 100; //10
 	int height = 100; // 10
-	float start = 2.5f;// 2.5~-3.5
+	volatile float start = 2.5f;// 2.5~-3.5
 	int left;
 	int bottomRandom;
 	float heightMovingPosRandom;
 	float elephantrotRandom;
 	int isRight = true;
 
-	int myrandom(int a, int b) {
-		return rand() % (b - a + 1) + a;
+	int random(int min, int max) //range : [min, max)
+	{
+		static bool first = true;
+		if (first)
+		{
+			srand(time(NULL)); //seeding for the first time only!
+			first = false;
+		}
+		return min + rand() % ((max + 1) - min);
 	}
 
 	MyPoint(int left1, int bottom) {
-		//leftMovingPosRandom = myrandom(-200, 1000); // -200~1000
-		//bottomRandom = myrandom(200, 490); // 490 ~ 200; 
-		left = left1;
-		bottomRandom = bottom;
+		left = random(-200, 1000); // -200~1000
+		bottomRandom = random(200, 490); // 490 ~ 200; 
+		//left = left1;
+		//bottomRandom = bottom;
 	}
 
-	void draw() {
-		Sleep(10);
-		glBegin(GL_QUADS);
 
-		glColor3f(0.8f, 0.8f, 0.8f);
+
+	void calculate() {
+		while(start > -3.5) {
 		start = start - 0.01f;
 		int leftOffset;
 		if (isRight) {
@@ -70,24 +78,44 @@ public :
 			if (left >= 980) {
 				leftOffset = -10;
 				isRight = false;
-			}else if(left <= -150) {
+			}
+			else if (left <= -150) {
 				leftOffset = 10;
 				isRight = true;
 			}
-		} else {
+		}
+		else {
 			leftOffset = -10;
 			if (left >= 980) {
 				leftOffset = -10;
 				isRight = false;
 
 			}
-			else if(left <= -150) {
+			else if (left <= -150) {
 				leftOffset = 10;
 				isRight = true;
 
 			}
 		}
 		left = left + leftOffset;
+		Sleep(20);
+		}
+	}
+
+	void calculateInThread() {
+		std::thread t1(std::bind(&MyPoint::calculate, this));
+		t1.detach();
+	}
+
+	void reset() {
+		left = random(-200, 1000); // -200~1000
+		bottomRandom = random(200, 490); // 490 ~ 200; 
+	}
+
+	void draw() {
+		glBegin(GL_QUADS);
+
+		glColor3f(0.8f, 0.8f, 0.8f);
 
 		float depth = 0.05f;
 
@@ -140,9 +168,8 @@ public :
 		glEnd();
 	}
 };
+std::list<MyPoint> points;
 
-MyPoint mtPoint(-200, 300);
-MyPoint mtPoint1(400, 450);
 /*
 * DegreeToRadian
 *	Converts a specified amount of degrees to radians.
@@ -330,11 +357,37 @@ void drawTable() {
 	glEnd();
 }
 
-void drawCircle() {
-	mtPoint.draw();
-	mtPoint1.draw();
+void s(MyPoint mtPoint) {
+	mtPoint.calculate();
+
 }
 
+
+void calculate1() {
+	for (auto& point : points) {
+		point.calculateInThread();
+	}
+}
+
+
+void drawCircle() {
+	for (auto& point : points) {
+		point.draw();
+	}
+}
+
+
+void createCircle() {
+	MyPoint mtPoint(-200, 300);
+	MyPoint mtPoint1(-200, 450);
+	MyPoint mtPoint2(-200, 450);
+
+	points.push_back(mtPoint);
+
+	points.push_back(mtPoint1);
+	points.push_back(mtPoint2);
+
+}
 /*
 * DrawRoom
 *	This will render the entire scene (in other words, draw the room).
@@ -563,7 +616,7 @@ int main(int argc, char **argv)
 	glLoadIdentity();
 
 	gluPerspective(80.0, 800.0 / 600.0, 0.1, 100.0);
-
+	createCircle();
 	/* We now switch to the modelview matrix. */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -583,6 +636,7 @@ int main(int argc, char **argv)
 
 	glColor4d(1, 1, 1, 1);
 
+
 	Textures[0] = GrabTexObjFromFile("Data/Wall.png");
 	Textures[1] = GrabTexObjFromFile("Data/Floor.png");
 	Textures[2] = GrabTexObjFromFile("Data/Box.png");			//Added!
@@ -592,8 +646,6 @@ int main(int argc, char **argv)
 																//sizeof(Textures) is the size of the entire array in bytes (unsigned int = 4 bytes)
 																//so sizeof(Textures) would give 3 * 4 = 12 bytes, divide this by 4 bytes and you
 																//have 3.
-	mtPoint = MyPoint(-200, 300);
-	mtPoint1 = MyPoint(400, 450);
 
 	for (unsigned i(0); i < sizeof(Textures) / sizeof(unsigned); ++i)
 	{
@@ -609,7 +661,7 @@ int main(int argc, char **argv)
 
 	/* Compile the display lists. */
 	CompileLists();
-
+	calculate1();
 	SDL_Event event;
 
 	int RelX(0), RelY(0);
