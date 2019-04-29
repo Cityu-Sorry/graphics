@@ -51,14 +51,15 @@ public :
 		return rand() % (b - a + 1) + a;
 	}
 
-	MyPoint() {
+	MyPoint(int left1, int bottom) {
 		//leftMovingPosRandom = myrandom(-200, 1000); // -200~1000
 		//bottomRandom = myrandom(200, 490); // 490 ~ 200; 
-		left = -200;
-		bottomRandom = 300;
+		left = left1;
+		bottomRandom = bottom;
 	}
 
 	void draw() {
+		Sleep(10);
 		glBegin(GL_QUADS);
 
 		glColor3f(0.8f, 0.8f, 0.8f);
@@ -140,7 +141,8 @@ public :
 	}
 };
 
-MyPoint mtPoint;
+MyPoint mtPoint(-200, 300);
+MyPoint mtPoint1(400, 450);
 /*
 * DegreeToRadian
 *	Converts a specified amount of degrees to radians.
@@ -330,6 +332,7 @@ void drawTable() {
 
 void drawCircle() {
 	mtPoint.draw();
+	mtPoint1.draw();
 }
 
 /*
@@ -589,7 +592,9 @@ int main(int argc, char **argv)
 																//sizeof(Textures) is the size of the entire array in bytes (unsigned int = 4 bytes)
 																//so sizeof(Textures) would give 3 * 4 = 12 bytes, divide this by 4 bytes and you
 																//have 3.
-	mtPoint = MyPoint();
+	mtPoint = MyPoint(-200, 300);
+	mtPoint1 = MyPoint(400, 450);
+
 	for (unsigned i(0); i < sizeof(Textures) / sizeof(unsigned); ++i)
 	{
 		if (Textures[i] == 0)

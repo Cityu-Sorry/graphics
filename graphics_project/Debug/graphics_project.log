@@ -1,3 +1,4 @@
-﻿MSVCRTD.lib(initializers.obj) : warning LNK4098: defaultlib 'msvcrt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
-  graphics_project.vcxproj -> D:\g\g\g\Debug\graphics_project.exe
-  graphics_project.vcxproj -> D:\g\g\g\Debug\graphics_project.pdb (Full PDB)
+﻿  Source.cpp
+MSVCRTD.lib(initializers.obj) : warning LNK4098: defaultlib 'msvcrt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
+  graphics_project.vcxproj -> D:\New folder\g\g\g\Debug\graphics_project.exe
+  graphics_project.vcxproj -> D:\New folder\g\g\g\Debug\graphics_project.pdb (Full PDB)
