@@ -122,7 +122,7 @@ public:
 		}
 		glBegin(GL_QUADS);
 
-		glColor3f(0.8f, 0.8f, 0.8f);
+		glColor3f(0.2f, 0.2f, 0.2f);
 
 		// bottom
 		glVertex3d(left, bottom, start + depth);
@@ -363,22 +363,22 @@ void drawTable() {
 }
 
 
-void calculate1() {
+void calculateObjs() {
 	for (auto& point : points) {
 		point.calculateInThread();
 	}
 }
 
 
-void drawCircle() {
-	calculate1();
+void drawObjs() {
+	calculateObjs();
 	for (auto& point : points) {
 		point.draw();
 	}
 }
 
 
-void createCircle() {
+void createObjs() {
 	MyPoint mtPoint;
 	MyPoint mtPoint1;
 	MyPoint mtPoint2;
@@ -393,7 +393,7 @@ void createCircle() {
 
 	Sleep(random(1600, 5000));
 
-	createCircle();
+	createObjs();
 
 }
 /*
@@ -532,7 +532,7 @@ void DrawRoom()
 	glEnd();
 
 	drawTable();
-	drawCircle();
+	drawObjs();
 
 
 	/* Now we're going to render some boxes using display lists. */
@@ -624,7 +624,7 @@ int main(int argc, char **argv)
 	glLoadIdentity();
 
 	gluPerspective(80.0, 800.0 / 600.0, 0.1, 100.0);
-	std::thread c(createCircle);
+	std::thread c(createObjs);
 	/* We now switch to the modelview matrix. */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
